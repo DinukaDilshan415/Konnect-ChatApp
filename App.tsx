@@ -7,6 +7,7 @@ import SignInScreen from "./src/screens/SignInScreen";
 import HomeScreen from "./src/screens/HomeScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import SettingsScreen from "./src/screens/SettingsScreen";
+import { ThemeProvider } from "./src/theme/ThemeProvider";
 
 export type RootStack = {
   SplashScreen: undefined;
@@ -18,50 +19,52 @@ export type RootStack = {
 }
 
 const Stack = createNativeStackNavigator();
- 
+
 export default function App() {
   return (
-<NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="SplashScreen"
-        screenOptions={{
-          animation: "fade",
-        }}>
+    <ThemeProvider>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName="SplashScreen"
+          screenOptions={{
+            animation: "slide_from_right",
+          }}>
 
-        <Stack.Screen
-          name="SplashScreen"
-          component={SplashScreen}
-          options={{
-            headerShown: false
-          }} />
+          <Stack.Screen
+            name="SplashScreen"
+            component={SplashScreen}
+            options={{
+              headerShown: false
+            }} />
 
-        <Stack.Screen
-          name="SignUpScreen"
-          component={SignUpScreen}
-          options={{
-            headerShown: false
-          }} />
+          <Stack.Screen
+            name="SignUpScreen"
+            component={SignUpScreen}
+            options={{
+              headerShown: false
+            }} />
 
-        <Stack.Screen
-          name="SignInScreen"
-          component={SignInScreen}
-          options={{
-            headerShown: false
-          }} />
+          <Stack.Screen
+            name="SignInScreen"
+            component={SignInScreen}
+            options={{
+              headerShown: false
+            }} />
 
-        <Stack.Screen
-          name="HomeScreen"
-          component={HomeScreen} />
+          <Stack.Screen
+            name="HomeScreen"
+            component={HomeScreen} />
 
-        <Stack.Screen
-          name="ProfileScreen"
-          component={ProfileScreen} />
+          <Stack.Screen
+            name="ProfileScreen"
+            component={ProfileScreen} />
 
-        <Stack.Screen
-          name="SettingsScreen"
-          component={SettingsScreen} />
+          <Stack.Screen
+            name="SettingsScreen"
+            component={SettingsScreen} />
 
-      </Stack.Navigator>
-    </NavigationContainer>
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ThemeProvider>
   );
 }
