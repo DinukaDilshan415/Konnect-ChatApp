@@ -187,7 +187,6 @@ const SignupScreen: React.FC = () => {
                     textBody: response.message,
                   });
                 }
-                console.log(userData);
               } catch (error) {
                 console.log(error);
               } finally {
@@ -196,7 +195,7 @@ const SignupScreen: React.FC = () => {
             }
           }}>
           {loading ? (
-            <ActivityIndicator size={'large'} color={"red"} />
+            <ActivityIndicator size={'large'} color={"green"} />
           ) : (
             <>
               <Text className='text-white font-bold text-xl'>Complete</Text>
