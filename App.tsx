@@ -8,9 +8,13 @@ import HomeScreen from "./src/screens/HomeScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import SettingsScreen from "./src/screens/SettingsScreen";
 import { ThemeProvider } from "./src/theme/ThemeProvider";
+import GetStartScreen from "./src/screens/GetStartScreen";
+import GetContactScreen from "./src/screens/GetContactScreen";
 
 export type RootStack = {
   SplashScreen: undefined;
+  GetStartScreen: undefined;
+  GetContactScreen: undefined;
   SignUpScreen: undefined;
   SignInScreen: undefined;
   HomeScreen: undefined;
@@ -33,6 +37,20 @@ export default function App() {
           <Stack.Screen
             name="SplashScreen"
             component={SplashScreen}
+            options={{
+              headerShown: false
+            }} />
+
+          <Stack.Screen
+            name="GetStartScreen"
+            component={GetStartScreen}
+            options={{
+              headerShown: false
+            }} />
+
+          <Stack.Screen
+            name="GetContactScreen"
+            component={GetContactScreen}
             options={{
               headerShown: false
             }} />
