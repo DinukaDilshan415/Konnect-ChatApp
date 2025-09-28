@@ -17,7 +17,7 @@ export default function SplashScreen() {
     useEffect(() => {
         opacity.value = withTiming(1, { duration: 2000 });
         const timer = setTimeout(() => {
-            navigation.replace("SignUpScreen");
+            navigation.replace("GetStartScreen");
         }, 2000)
 
         return () => {

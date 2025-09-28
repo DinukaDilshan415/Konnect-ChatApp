@@ -29,9 +29,9 @@ const SignupScreen: React.FC = () => {
     <KeyboardAwareScrollView
       contentContainerStyle={{ flexGrow: 1 }}
       enableOnAndroid
-      extraScrollHeight={50} // space between input & keyboard
+      // extraScrollHeight={50} // space between input & keyboard
       keyboardShouldPersistTaps="handled">
-      <SafeAreaView className="flex-1 justify-center  bg-white dark:bg-slate-700 px-6">
+      <SafeAreaView className="flex-1 justify-center bg-white dark:bg-slate-700 px-6">
         <StatusBar hidden={false} barStyle={'dark-content'} className='bg-white dark:bg-slate-700' />
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled" >
           <View className='justify-center items-center w-full'>
