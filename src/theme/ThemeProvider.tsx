@@ -17,8 +17,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { colorScheme, setColorScheme } = useColorScheme();
-  const [getPreferenceState, setPreferenceState] =
-    useState<ThemeOption>("system");
+  const [getPreferenceState, setPreferenceState] = useState<ThemeOption>("system");
   const [isReady, setReady] = useState(false);
 
   useEffect(() => {
