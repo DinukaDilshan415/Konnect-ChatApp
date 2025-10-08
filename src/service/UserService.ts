@@ -31,3 +31,23 @@ export const createNewAccount = async (
         return "Account creation failed !";
     }
 };
+
+export const uploadProfileImage = async (userId:string, imageUri: string) => {
+  let formData = new FormData();
+  formData.append("userId", userId);
+  formData.append("profileImage", {
+    uri: imageUri,
+    type: "image/png", // change if PNG
+    name: "profile.png",
+  } as any);
+
+  const response = await fetch(API + "/ProfileController", {
+    method: "POST",
+    body: formData,
+  });
+  if (response.ok) {
+    return await response.json();
+  } else {
+    console.warn("Profile image uploading failed!");
+  }
+};

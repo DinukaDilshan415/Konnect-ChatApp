@@ -5,6 +5,10 @@ import { RootStack } from '../../App';
 import { FlatList, Image, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Entypo, Feather, FontAwesome, Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+import { useSingleChat } from '../socket/UseSingleChat';
+import { UseSendChat } from '../socket/UseSendChat';
+import { formatChatTime } from '../util/DateFormatter';
+import { Chat } from '../types/Types';
 
 type Message = {
     id: number;
@@ -19,35 +23,16 @@ type SingleChatScreenProps = NativeStackScreenProps<RootStack, "SingleChatScreen
 export default function SingleChatScreen({ route, navigation }: SingleChatScreenProps) {
 
     const { chatId, friendName, lastSeenTime, profileImage } = route.params;
-
+    const singleChat = useSingleChat(chatId);
+    const messages = singleChat.messages;
+    const friend = singleChat.friend;
+    const sendMessage = UseSendChat();
     const [input, setInput] = useState("");
-
-    const [message, setMessage] = useState<Message[]>([
-        { id: 3, text: "Hello, Kohomada Hello, Kohomada", sender: "me", time: "10:58 AM", status: "read" },
-        { id: 2, text: "Hi, Hello Hi, Hello Hi, Hello Hi, Hello Hi, Hello Hi, Hello", sender: "friend", time: "10:57 AM" },
-        { id: 1, text: "Hi", sender: "friend", time: "10:56 AM" },
-    ]);
 
     useLayoutEffect(() => {
         navigation.setOptions({
             title: "",
             headerTitleStyle: { fontWeight: "bold", fontSize: 24 },
-            // headerLeft: () => (
-            //     <View className='flex-row justify-center items-center gap-2'>
-            //         <Image source={require("../../assets/avatar/avatar_1.png")} className="h-14 w-14 rounded-full border-2 border-gray-400" />
-            //         <View className='space-y-2'>
-            //             <Text className='font-bold text-2xl'>{friendName}</Text>
-            //             <Text className='font-bold text-xs text-gray-500'>Last seen {lastSeenTime}</Text>
-            //         </View>
-            //     </View>
-            // ),
-            // headerRight: () => (
-            //     <View className='flex-row space-x-4 gap-2'>
-            //         <TouchableOpacity className=''>
-            //             <Ionicons name="ellipsis-vertical" size={24} color="black" />
-            //         </TouchableOpacity>
-            //     </View>
-            // ),
             header: () => (
                 <SafeAreaView className='bg-white'>
                     <View className='flex-row justify-between mx-3 mt-2'>
@@ -60,10 +45,16 @@ export default function SingleChatScreen({ route, navigation }: SingleChatScreen
                     </View>
                     <View className='flex-row justify-between mx-3 mt-2'>
                         <View className='flex-row justify-center items-center gap-2'>
-                            <Image source={require("../../assets/avatar/avatar_1.png")} className="h-14 w-14 rounded-full border-2 border-gray-400" />
+                            <Image source={{ uri: profileImage }} className="h-14 w-14 rounded-full border-2 border-gray-400" />
                             <View className='space-y-2'>
                                 <Text className='font-bold text-2xl'>{friendName}</Text>
-                                <Text className='font-bold text-xs text-gray-500'>Last seen {lastSeenTime}</Text>
+                                <Text className='font-bold text-xs text-gray-500'>
+                                    {friend?.status === "ONLINE"
+                                        ? "Online"
+                                        : `Last seen ${formatChatTime(
+                                            friend?.updatedAt ?? ""
+                                        )}`}
+                                </Text>
                             </View>
                         </View>
                         <View className='flex-row justify-center items-center space-x-4 gap-x-4'>
@@ -79,51 +70,43 @@ export default function SingleChatScreen({ route, navigation }: SingleChatScreen
                 </SafeAreaView>
             ),
         });
-    }, [navigation]);
+    }, [navigation, friend]);
 
-    const renderItem = ({ item }: { item: Message }) => {
-        const isMe = item.sender === "me";
+    const renderItem = ({ item }: { item: Chat }) => {
+        const isMe = item.from_user.id !== chatId;
 
         return (
             <View className={`my-1 px-3 max-w-[75%] ${isMe
                 ? `self-end bg-yellow-600 rounded-tl-xl rounded-bl-xl rounded-br-xl`
                 : `self-start bg-white rounded-tr-xl rounded-bl-xl rounded-br-xl`
                 }`}>
-                <Text className={`${isMe?`text-white` : `text-black`} text-base`}>{item.text}</Text>
+                <Text className={`${isMe ? `text-white` : `text-black`} text-base`}>{item.message}</Text>
                 <View className='flex-row justify-end items-center mt-1'>
-                    <Text className={`${isMe?`text-white` : `text-black`} italic text-xs me-2`}>{item.time}</Text>
+                    <Text className={`${isMe ? `text-white` : `text-black`} italic text-xs me-2`}>{formatChatTime(item.createdAt)}</Text>
                     {isMe && <Ionicons
                         name={
-                            item.status === "read"
+                            item.status === "READ"
                                 ? "checkmark-done-sharp"
-                                : item.status === "delivered"
+                                : item.status === "DELIVERED"
                                     ? "checkmark-done"
                                     : "checkmark"}
                         size={16}
                         color={
-                            item.status === "read"
+                            item.status === "READ"
                                 ? "#0a84ff"
-                                : "#9ca3af"} />}
+                                : "#c2c2c2"} />}
                 </View>
             </View>
         );
     };
 
-    const sendMessage = () => {
-        if (input.trim()) {
-            const newMsg: Message = {
-                id: Date.now(),
-                text: input,
-                sender: "me",
-                time: Date.now().toString(),
-                status: "sent",
-            };
-
-            setMessage([newMsg, ...message]);
-            setInput("");
+    const handleSendChat = () => {
+        if (!input.trim()) {
+            return;
         }
-        return !input.trim();
-    }
+        sendMessage(chatId, input);
+        setInput("");
+    };
 
     return (
         <SafeAreaView className='flex-1 bg-white' edges={["right", "bottom", "left"]}>
@@ -131,9 +114,9 @@ export default function SingleChatScreen({ route, navigation }: SingleChatScreen
                 behavior={Platform.OS === 'android' ? 'padding' : 'height'} className='flex-1'
                 keyboardVerticalOffset={135}>
                 <FlatList
-                    data={message}
+                    data={messages}
                     renderItem={renderItem}
-                    keyExtractor={(item) => item.id.toString()}
+                    keyExtractor={(_, index) => index.toString()}
                     className='px-3 py-1 flex-1 bg-gray-300'
                     contentContainerStyle={{ paddingBottom: 60 }}
                     inverted
@@ -152,7 +135,7 @@ export default function SingleChatScreen({ route, navigation }: SingleChatScreen
                     />
                     <TouchableOpacity
                         className='bg-amber-400 w-14 h-14 items-center justify-center rounded-full'
-                        onPress={sendMessage}>
+                        onPress={handleSendChat}>
                         <FontAwesome name="send" size={24} color="black" />
                     </TouchableOpacity>
                 </View>

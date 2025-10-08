@@ -8,6 +8,7 @@ import { FlatList, Image, Text, TextInput, TouchableOpacity, View } from 'react-
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '../theme/ThemeProvider';
+import { useUserList } from '../socket/UseUserList';
 
 type NewChatScreenProp = NativeStackNavigationProp<RootStack, "NewChatScreen">;
 
@@ -15,49 +16,7 @@ export default function NewChatScreen() {
     const navigation = useNavigation<NewChatScreenProp>();
     const [searchBar, setSearchBar] = useState(false);
     const [search, setSearch] = useState("");
-    const [users, setUsers] = useState<User[]>([
-        {
-            id: 1,
-            firstName: "Anjana",
-            lastName: "Dilhara",
-            countryCode: "+94",
-            contactNo: "762711882",
-            createdAt: "2025-09-29 18:37:00",
-            updatedAt: "2025-10-01 01:53:06",
-            status: "ACTIVE",
-            profileImage: "https://img.freepik.com/free-vector/smiling-young-man-illustration_1308-174669.jpg?semt=ais_hybrid&w=740&q=80",
-            first_name: "",
-            last_name: "",
-            contact_no: "",
-        },
-        {
-            id: 2,
-            firstName: "Ben",
-            lastName: "Tenison",
-            countryCode: "+921",
-            contactNo: "21324212321",
-            createdAt: "2025-09-39 19:17:00",
-            updatedAt: "2025-10-01 06:23:06",
-            status: "NOT_IN_LIST",
-            profileImage: "https://img.freepik.com/premium-vector/cool-cartoon-boy-avatar_987671-675.jpg?semt=ais_hybrid&w=740&q=80",
-            first_name: "",
-            last_name: "",
-            contact_no: "",
-        },
-        {
-            id: 3,
-            firstName: "Michel",
-            lastName: "Marsh",
-            countryCode: "+93",
-            contactNo: "84134454",
-            createdAt: "2025-09-39 19:17:00",
-            updatedAt: "2025-10-01 06:23:06",
-            status: "ACTIVE",
-            first_name: "",
-            last_name: "",
-            contact_no: "",
-        }
-    ]);
+    const users = useUserList();
 
     const { applied } = useTheme();
 
@@ -67,6 +26,7 @@ export default function NewChatScreen() {
             : require("../../assets/yellow-L-logo.png");
 
     useLayoutEffect(() => {
+        {users.length > 0 ? setHaveUsers(true) : setHaveUsers(false)}
         navigation.setOptions({
             title: "",
             headerStyle: {
@@ -103,15 +63,15 @@ export default function NewChatScreen() {
 
     const renderItem = ({ item }: { item: User }) => (
         <TouchableOpacity
-            className="justify-start items-center gap-x-3 px-3 py-2 flex-row bg-gray-50 mt-1"
+            className="justify-start items-center gap-x-3 px-3 py-2 flex-row bg-slate-50 mt-1"
             onPress={() => {
                 navigation.replace("SingleChatScreen", {
                     chatId: item.id,
-                    friendName: `${item.firstName} ${item.lastName}`,
+                    friendName: `${item.displayName}`,
                     lastSeenTime: item.updatedAt,
                     profileImage: item.profileImage
                         ? item.profileImage
-                        : `https://ui-avatars.com/api/?name=${item.firstName}+${item.lastName}&background=random`,
+                        : `https://ui-avatars.com/api/?name=${item.first_name}+${item.last_name}&background=random`,
                 });
             }}
         >
@@ -125,19 +85,19 @@ export default function NewChatScreen() {
                     ) : (
                         <Image
                             source={{
-                                uri: `https://ui-avatars.com/api/?name=${item.firstName}+${item.lastName}&background=random`,
+                                uri: `https://ui-avatars.com/api/?name=${item.first_name}+${item.last_name}&background=random`,
                             }}
                             className="h-14 w-14 rounded-full"
                         />
                     )}
                 </TouchableOpacity>
             </View>
-            <View className="flex-col gap-y-1">
+            <View className="flex-col">
                 <Text className="font-bold text-xl">
-                    {item.firstName} {item.lastName}
+                    {item.displayName ? item.displayName : item.first_name + " " + item.last_name}
                 </Text>
-                <Text className="text-sm italic">
-                    {item.countryCode} {item.contactNo}
+                <Text className="text-lg italic text-slate-600">
+                    {item.countryCode}{item.contact_no}
                 </Text>
             </View>
         </TouchableOpacity>
@@ -146,12 +106,13 @@ export default function NewChatScreen() {
     const filterdUsers = [...users]
         .filter((user) => {
             return (
-                user.firstName.toLowerCase().includes(search.toLowerCase()) ||
-                user.lastName.toLowerCase().includes(search.toLowerCase()) ||
-                user.contactNo.includes(search)
+                user.displayName.toLowerCase().includes(search.toLowerCase()) ||
+                user.contact_no.includes(search)
             );
         })
-        .sort((a, b) => a.firstName.localeCompare(b.firstName));
+        .sort((a, b) => a.first_name.localeCompare(b.last_name));
+
+    const [haveUsers, setHaveUsers] = useState(false);
 
     return (
         <SafeAreaView
@@ -189,12 +150,24 @@ export default function NewChatScreen() {
                         <Text className="text-xl font-bold text-orange-500">New Contact</Text>
                     </TouchableOpacity>
                 </View>
-                <View className="mt-2">
-                    <FlatList
-                        data={filterdUsers}
-                        renderItem={renderItem}
-                    />
-                </View>
+                {haveUsers
+                    ?
+                    <View className="mt-2">
+                        <FlatList
+                            data={filterdUsers}
+                            renderItem={renderItem}
+                        />
+                    </View>
+                    :
+                    <View className='flex-1 justify-center items-center bg-amber-100'>
+                        <Image source={require("../../assets/konnect-bg.png")} className='w-full h-full absolute' />
+                        <Text className='text-center text-xl font-exo-bold mx-4'>
+                            Tap  ' &nbsp;<Feather name="user-plus" size={28} color="#000000" /> New Contact &nbsp;'
+                            At the top of your screen to Konnect with Friends
+                        </Text>
+                    </View>
+                }
+
             </View>
         </SafeAreaView>
     )

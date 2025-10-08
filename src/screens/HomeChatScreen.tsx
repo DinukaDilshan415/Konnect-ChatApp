@@ -9,6 +9,10 @@ import { useTheme } from '../theme/ThemeProvider';
 import { Exo_400Regular, Exo_700Bold, useFonts } from '@expo-google-fonts/exo';
 import { Fredoka_400Regular } from '@expo-google-fonts/fredoka';
 import { Quicksand_400Regular } from '@expo-google-fonts/quicksand';
+import { useChatList } from '../socket/UseChatList';
+import { useWebSocketPing } from '../socket/UseWebSocketPing';
+import { Chat } from '../types/Types';
+import { formatChatTime } from '../util/DateFormatter';
 
 const chats = [
     {
@@ -90,10 +94,10 @@ export default function HomeChatScreen() {
     const navigation = useNavigation<HomeChatScreenProps>();
     const [search, setSearch] = useState("");
     const [searchBar, setSearchBar] = useState(false);
-    //   const chatList = useChatList();
+    const chatList = useChatList();
     const [isModalVisible, setModalVisible] = useState(false);
 
-    //   useWebSocketPing(4000 * 60);
+    useWebSocketPing(4000 * 60);
 
     const { applied } = useTheme();
 
@@ -181,26 +185,44 @@ export default function HomeChatScreen() {
         });
     }, [navigation, isModalVisible]);
 
-    const filterdChats = chats.filter((chat) => {
-        return (
-            chat.name.toLowerCase().includes(search.toLowerCase()) ||
-            chat.lastMessage.toLowerCase().includes(search.toLowerCase())
+    const filterdChats = [...chatList]
+        .filter((chat) => {
+            return (
+                chat.friendName.toLowerCase().includes(search.toLowerCase()) ||
+                chat.lastMessage.toLowerCase().includes(search.toLowerCase())
+            );
+        })
+        .sort(
+            (a, b) =>
+                new Date(b.lastTimeStamp).getTime() -
+                new Date(a.lastTimeStamp).getTime()
         );
-    });
 
-    const renderItem = ({ item }: any) => (
+    const renderItem = ({ item }: { item: Chat }) => (
         <TouchableOpacity
             className="flex-row items-center py-2 px-3 bg-gray-50 my-0.5"
             onPress={() => {
                 navigation.navigate("SingleChatScreen", {
-                    chatId: 1,
-                    friendName: "Anjana",
-                    lastSeenTime: "8:07 PM",
-                    profileImage: require("../../assets/avatar/avatar_1.png"),
-                });
+                    chatId: item.friendId,
+                    friendName: item.displayName ? item.displayName : item.friendName,
+                    lastSeenTime: formatChatTime(item.lastTimeStamp),
+                    profileImage: item.profileImage
+                        ? item.profileImage
+                        : `https://ui-avatars.com/api/?name=${item.friendName.replace(" ", "+")}&&background=random&&bold=true`,
+                })
             }}
         >
-            <Image source={item.profile} className="h-16 w-16 rounded-full" />
+            {item.profileImage ? (
+                <Image
+                    source={{ uri: item.profileImage }}
+                    className='h-16 w-16 rounded-full'
+                />
+            ) : (
+                <Image
+                    source={{ uri: `https://ui-avatars.com/api/?name=${item.friendName.replace(" ", "+")}&&background=random&&bold=true` }}
+                    className='h-16 w-16 rounded-full'
+                />
+            )}
             <View className="flex-1 ms-2">
                 <View className="flex-row justify-between">
                     <Text
@@ -208,23 +230,21 @@ export default function HomeChatScreen() {
                         numberOfLines={1}
                         ellipsizeMode="tail"
                     >
-                        {item.name}
+                        {item.displayName ? item.displayName : item.friendName}
                     </Text>
-                    <Text className="font-bold text-xs text-gray-500">{item.time}</Text>
+                    <Text className="font-bold text-xs text-gray-500">{formatChatTime(item.lastTimeStamp)}</Text>
                 </View>
                 <View className="flex-row justify-between items-center">
                     <Text
-                        className="text-gray-500 flex-1 text-base font-quicksand"
+                        className="text-gray-500 flex-1 text-base"
                         numberOfLines={1}
                         ellipsizeMode="tail"
                     >
                         {item.lastMessage}
                     </Text>
-                    {item.unread > 0 && (
+                    {item.unreadCount > 0 && (
                         <View className="bg-amber-500 rounded-md py-1 px-2 ms-2">
-                            <Text className="text-slate-50 text-sm font-bold">
-                                {item.unread}
-                            </Text>
+                            <Text className="text-slate-50 text-sm font-bold">{item.unreadCount}</Text>
                         </View>
                     )}
                 </View>
@@ -253,13 +273,24 @@ export default function HomeChatScreen() {
                 </View>
                 : <View></View>}
 
-            <View className="mt-1">
-                <FlatList
-                    data={filterdChats}
-                    renderItem={renderItem}
-                    contentContainerStyle={{ paddingBottom: 80 }}
-                />
-            </View>
+
+            {chatList.length > 0
+                ?
+                <View className="mt-1">
+                    <FlatList
+                        data={filterdChats}
+                        renderItem={renderItem}
+                        contentContainerStyle={{ paddingBottom: 20 }}
+                    />
+                </View>
+                :
+                <View className='flex-1 justify-center items-center bg-amber-100'>
+                    <Image source={require("../../assets/konnect-bg.png")} className='w-full h-full absolute' />
+                    <Text className='text-center text-xl font-exo-bold mx-4'>To Konnect With Your Friends, Tap &nbsp;
+                        <MaterialCommunityIcons name="chat-plus" size={30} color="black" />
+                        &nbsp; At the bottom of your screen</Text>
+                </View>
+            }
             <View className="absolute bg-amber-400 bottom-6 right-6 h-16 w-16 rounded-xl"
                 style={{
                     shadowColor: "#000",
