@@ -11,11 +11,13 @@ export interface User {
   first_name: string;
   last_name: string;
   contact_no: string;
+  displayName: string;
 }
 export interface Chat {
   id: number;
   friendId: number;
   friendName: string;
+  displayName: string;
   lastMessage: string;
   lastTimeStamp: string;
   unreadCount: number;

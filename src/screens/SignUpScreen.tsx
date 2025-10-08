@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, StatusBar, Pressable, Image, FlatList, TextInput, ActivityIndicator } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import React, { useContext, useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, StatusBar, Pressable, Image, FlatList, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -13,6 +12,7 @@ import { useUserRegistration } from '../components/UserContext';
 import { validateFirstName, validateLastName, validateProfileImage } from '../util/Validation';
 import { ALERT_TYPE, Toast } from 'react-native-alert-notification';
 import { createNewAccount } from '../service/UserService';
+import { AuthContext } from '../components/AuthProvider';
 
 type SignUpScreenProps = NativeStackNavigationProp<RootStack, "SignUpScreen">
 
@@ -46,6 +46,7 @@ const SignupScreen: React.FC = () => {
     require("../../assets/avatar/avatar_6.png"),
   ];
 
+  const auth = useContext(AuthContext);
 
   const [firstname, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -60,13 +61,13 @@ const SignupScreen: React.FC = () => {
   const { userData, setUserData } = useUserRegistration();
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'android' ? 'padding' : 'height'}
+    <SafeAreaView
       className='flex-1'>
       <SafeAreaView className="flex-1 justify-center bg-white dark:bg-slate-700">
         <View className='h-72 w-full bg-amber-100 absolute top-0'></View>
         <View className='h-60 w-full bg-amber-300 absolute top-0'></View>
         <StatusBar hidden={false} barStyle={'dark-content'} className='bg-white dark:bg-slate-700' />
-        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled" >
+        <ScrollView contentContainerStyle={styles.container} >
           <View className='justify-center items-center w-full '>
             <Image source={logo} className='w-64 h-28' />
           </View>
@@ -93,7 +94,7 @@ const SignupScreen: React.FC = () => {
                   </View>
                 )}
               </Pressable>
-              <Text className='text-lg my-2 text-slate-700 font-bold'>
+              <Text className='text-lg my-2 text-slate-700 dark:text-white font-bold'>
                 Or select an avatar
               </Text>
               <FlatList
@@ -122,6 +123,7 @@ const SignupScreen: React.FC = () => {
               label={"Enter Your First Name"}
               maxLength={200}
               animationDuration={50}
+              inputStyles={{ color: applied === "dark" ? "white" : "black" }}
               value={userData.firstName}
               onChangeText={(text) => {
                 setUserData((previous) => ({
@@ -134,6 +136,7 @@ const SignupScreen: React.FC = () => {
               label={"Enter Your Last Name"}
               maxLength={200}
               animationDuration={50}
+              inputStyles={{ color: applied === "dark" ? "white" : "black" }}
               value={userData.lastName}
               onChangeText={(text) => {
                 setUserData((previous) => ({
@@ -142,11 +145,9 @@ const SignupScreen: React.FC = () => {
               }}
             />
           </View>
-
-
         </ScrollView>
       </SafeAreaView>
-      <View className='w-full px-5 mt-5 absolute bottom-9'>
+      <View className='w-full px-5 mt-5 absolute bottom-1'>
         <Pressable className={`h-14 justify-center items-center flex-row gap-2 rounded-full bg-amber-500 text-white`}
           onPress={async () => {
             let validFirstName = validateFirstName(userData.firstName);
@@ -179,7 +180,10 @@ const SignupScreen: React.FC = () => {
                 setLoading(true);
                 const response = await createNewAccount(userData);
                 if (response.status) {
-                  navigation.replace("HomeScreen");
+                  if (auth) {
+                    await auth.signUp(String(response.userId));
+                    // navigation.replace("HomeScreen");
+                  }
                 } else {
                   Toast.show({
                     type: ALERT_TYPE.WARNING,
@@ -204,7 +208,7 @@ const SignupScreen: React.FC = () => {
           )}
         </Pressable>
       </View>
-    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -212,6 +216,6 @@ export default SignupScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1,
   },
 });

@@ -1,18 +1,22 @@
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useEffect, useLayoutEffect, useState } from 'react'
+import React, { useContext, useEffect, useLayoutEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { RootStack } from '../../App';
 import { useNavigation } from '@react-navigation/native';
 import { Image, Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
-import { useTheme } from '../theme/ThemeProvider';
-import { Entypo, Feather, FontAwesome5, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { ThemeOption, useTheme } from '../theme/ThemeProvider';
+import { AntDesign, Entypo, Feather, FontAwesome5, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { useUserProfile } from '../socket/UseUserProfile';
+import { formatChatTime } from '../util/DateFormatter';
+import { AuthContext } from '../components/AuthProvider';
 
 type MoreScreenProp = NativeStackNavigationProp<RootStack, "MoreScreen">;
-
+const options: ThemeOption[] = ["light", "dark", "system"];
 export default function MoreScreen() {
   const navigation = useNavigation<MoreScreenProp>();
-
-  const { applied } = useTheme();
+  const userProfile = useUserProfile().userProfile;
+  const { preference, applied, setPreference } = useTheme();
+  const auth = useContext(AuthContext);
 
   const logo =
     applied === "dark"
@@ -36,25 +40,33 @@ export default function MoreScreen() {
         </SafeAreaView>
       ),
     });
-  }, []);
+  }, [navigation]);
 
   const [isModalVisible, setModalVisible] = useState(false);
 
   return (
-    <SafeAreaView className={`flex-1 bg-white ${isModalVisible ? `bg-black/50` : ``}`} edges={["right", "bottom", "left"]}>
-      <TouchableOpacity className='flex-row justify-between bg-slate-100 px-2 py-2 border-y-2 border-gray-200'>
-        <View className='items-center flex-row gap-x-4'>
+    <SafeAreaView className={`flex-1 ${isModalVisible ? `bg-black/70` : ``}`} edges={["right", "bottom", "left"]}>
+      <TouchableOpacity
+        className={`flex-row justify-between  px-2 py-2  ${isModalVisible ? `bg-black/20` : `bg-slate-100 border-y-2 border-gray-200`}`}
+        onPress={() => {
+          navigation.navigate("ProfileScreen");
+        }}
+      >
+        <View className='items-center flex-row gap-x-4 '>
           <View className='h-24 w-24'>
             <Image
-              source={{ uri: "https://img.freepik.com/free-vector/smiling-young-man-illustration_1308-174669.jpg?semt=ais_hybrid&w=740&q=80" }}
-              className='h-24 w-24 rounded-full shadow-lg border-4 border-purple-100' />
+              source={{ uri: `${userProfile?.profileImage}?v=${Date.now()}` }}
+              className='h-24 w-24 rounded-full shadow-lg border-4 border-purple-200' />
           </View>
           <View className="flex-col gap-y-1">
             <Text className="font-exo-bold text-2xl">
-              Dinuka Dilshan
+              {userProfile?.first_name} {userProfile?.last_name}
             </Text>
             <Text className="text-lg font-quicksand">
-              +94 8726327832232
+              {userProfile?.countryCode} {userProfile?.contact_no}
+            </Text>
+            <Text className="text-lg font-quicksand">
+              Joined At : {formatChatTime(userProfile ? userProfile?.createdAt : "")}
             </Text>
           </View>
         </View>
@@ -102,6 +114,17 @@ export default function MoreScreen() {
         <TouchableOpacity className='flex-row justify-between ps-5 px-2 py-2'>
           <View className='items-center flex-row gap-x-4'>
             <View className='flex-row gap-4'>
+              <AntDesign name="mobile" size={28} color="black" />
+              <Text className="font-fredoka font-bold text-xl">About App</Text>
+            </View>
+          </View>
+          <View className='items-center justify-center'>
+            <MaterialIcons name="keyboard-arrow-right" size={44} color="black" />
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity className='flex-row justify-between ps-5 px-2 py-2'>
+          <View className='items-center flex-row gap-x-4'>
+            <View className='flex-row gap-4'>
               <Feather name="help-circle" size={28} color="black" />
               <Text className="font-fredoka font-bold text-xl">Help Center</Text>
             </View>
@@ -111,7 +134,13 @@ export default function MoreScreen() {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity className='justify-center items-center flex-row gap-2 ps-5 px-2 py-2'>
+        <TouchableOpacity
+          className='justify-center items-center flex-row gap-2 ps-5 px-2 py-2'
+          onPress={() => {
+            if (auth) {
+              auth.signOut();
+            }
+          }}>
           <View className='items-center flex-row gap-x-4'>
             <View className='flex-row gap-4'>
               <Text className="font-fredoka font-bold text-2xl text-red-600">Log Out</Text>
@@ -140,8 +169,8 @@ export default function MoreScreen() {
               e.stopPropagation();
             }}
           >
-            <View className='justify-end items-end p-1'>
-              <View className='bg-white rounded-2xl w-60 h-60 p-3'
+            <View className='justify-end items-end p-1 '>
+              <View className='bg-white dark:bg-slate-800 rounded-2xl w-60 h-60 p-3 '
                 style={{
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: 2 },
@@ -150,10 +179,35 @@ export default function MoreScreen() {
                   elevation: 5,
                 }}
               >
-                <Text>Hello</Text>
-                <Text>Hello</Text>
-                <Text>Hello</Text>
-                <Text>Hello</Text>
+
+                <View className="flex-col justify-start gap-5">
+                  <Text className={`text-2xl text-center font-semibold ${applied === "dark" ? "text-gray-200" : "text-gray-800"}`}>
+                    Choose Theme
+                  </Text>
+                  {options.map((option) => (
+                    <TouchableOpacity key={option} onPress={() => setPreference(option)} className="flex-row items-center gap-x-2">
+                      <View className={`w-6 h-6 rounded-full border-2 flex items-center justify-center 
+                          ${preference === option
+                          ? "border-amber-600"
+                          : applied === "dark"
+                            ? "border-gray-500"
+                            : "border-gray-400"
+                        }`}
+                      >
+
+                        {preference === option && (
+                          <View className="w-3.5 h-3.5 rounded-full bg-amber-600" />
+                        )}
+                      </View>
+                      <Text
+                        className={`text-xl font-semibold ${applied === "dark" ? "text-gray-200" : "text-gray-800"
+                          }`}
+                      >
+                        {option.charAt(0).toUpperCase() + option.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
             </View>
           </Pressable>

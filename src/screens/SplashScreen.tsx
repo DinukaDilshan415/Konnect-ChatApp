@@ -1,10 +1,11 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useContext, useEffect, useRef } from 'react'
 import { Image, StatusBar, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { RootStack } from '../../App'
+import { AuthContext } from '../components/AuthProvider'
 
 type Props = NativeStackNavigationProp<RootStack, "SplashScreen">;
 
@@ -13,16 +14,17 @@ export default function SplashScreen() {
     const navigation = useNavigation<Props>();
 
     const opacity = useSharedValue(0);
-
+    const auth = useContext(AuthContext);
     useEffect(() => {
         opacity.value = withTiming(1, { duration: 2000 });
-        const timer = setTimeout(() => {
-            navigation.replace("GetStartScreen");
-        }, 2000)
+        auth?.signUp("2");
+        // const timer = setTimeout(() => {
+        //     navigation.replace("GetStartScreen");
+        // }, 2000)
 
-        return () => {
-            clearTimeout(timer);
-        };
+        // return () => {
+        //     clearTimeout(timer);
+        // };
     }, [navigation, opacity]);
 
     const animatedStyle = useAnimatedStyle(() => {

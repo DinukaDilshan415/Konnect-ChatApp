@@ -9,6 +9,7 @@ import CountryPicker, { Country, CountryCode } from "react-native-country-picker
 import { FloatingLabelInput } from 'react-native-floating-label-input';
 import { validateCountryCode, validateFirstName, validateLastName, validatePhoneNo } from '../util/Validation';
 import { ALERT_TYPE, Toast } from 'react-native-alert-notification';
+import { useSendNewContact } from '../socket/UseSentNewContact';
 
 type NewContactScreenProp = NativeStackNavigationProp<RootStack, "NewContactScreen">;
 
@@ -45,20 +46,25 @@ export default function NewContactScreen() {
     const [lastName, setLastName] = useState("");
     const [phoneNo, setPhoneNo] = useState("");
 
+    const newContact = useSendNewContact();
+    const sendNewContact = newContact.sendNewContact;
+    const responseText = newContact.responseText;
+
     const sendData = () => {
-        // sendNewContact({
-        //     id: 0,
-        //     firstName: firstName,
-        //     lastName: lastName,
-        //     countryCode: callingCode,
-        //     contactNo: phoneNo,
-        //     createdAt: "",
-        //     updatedAt: "",
-        //     status: "",
-        //     first_name: "",
-        //     last_name: "",
-        //     contact_no: "",
-        // });
+        sendNewContact({
+            id: 0,
+            firstName: firstName,
+            lastName: lastName,
+            countryCode: callingCode,
+            contactNo: phoneNo,
+            createdAt: "",
+            updatedAt: "",
+            status: "",
+            first_name: "",
+            last_name: "",
+            contact_no: "",
+            displayName:"",
+        });
         setFirstName("");
         setLastName("");
         setCallingCode("+94");
@@ -72,7 +78,7 @@ export default function NewContactScreen() {
     }, [country]);
 
     return (
-        <SafeAreaView className='flex-1 bg-white'>
+        <SafeAreaView className='flex-1 bg-white pt-4'>
             <View className='flex-1 items-center px-5'>
                 <View className='flex-row items-center gap-x-2  h-14'>
                     <Feather name="user" size={24} color="black" />
@@ -81,7 +87,7 @@ export default function NewContactScreen() {
                             label="First Name"
                             className=""
                             animationDuration={50}
-                            containerStyles={{borderBottomWidth:2,borderColor:"#ffd000"}}
+                            containerStyles={{ borderBottomWidth: 2, borderColor: "#ffd000" }}
                             value={firstName}
                             onChangeText={(text) => setFirstName(text)}
                         />
@@ -94,7 +100,7 @@ export default function NewContactScreen() {
                             label="Last Name"
                             className=""
                             animationDuration={50}
-                            containerStyles={{borderBottomWidth:2,borderColor:"#ffd000"}}
+                            containerStyles={{ borderBottomWidth: 2, borderColor: "#ffd000" }}
                             value={lastName}
                             onChangeText={(text) => setLastName(text)}
                         />
@@ -131,7 +137,7 @@ export default function NewContactScreen() {
                             label=""
                             editable={false}
                             animationDuration={50}
-                            containerStyles={{borderWidth:2,borderColor:"#ffd000", borderRadius:10}}
+                            containerStyles={{ borderWidth: 2, borderColor: "#ffd000", borderRadius: 10 }}
                             value={country ? `+${country.callingCode}` : callingCode}
                             onChangeText={(text) => {
                                 setCallingCode(text);
@@ -144,7 +150,7 @@ export default function NewContactScreen() {
                             inputMode="tel"
                             className=""
                             animationDuration={50}
-                            containerStyles={{borderWidth:2,borderColor:"#ffd000", borderRadius:10}}
+                            containerStyles={{ borderWidth: 2, borderColor: "#ffd000", borderRadius: 10 }}
                             value={phoneNo}
                             onChangeText={(text) => setPhoneNo(text)}
                         />
@@ -184,7 +190,7 @@ export default function NewContactScreen() {
                                     textBody: phoneNoValid,
                                 });
                             } else {
-                                // sendData();
+                                sendData();
                             }
                         }}
                     >
