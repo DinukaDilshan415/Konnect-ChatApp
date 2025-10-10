@@ -3,12 +3,13 @@ import React, { useContext, useEffect, useLayoutEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { RootStack } from '../../App';
 import { useNavigation } from '@react-navigation/native';
-import { Image, Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Modal, Pressable, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { ThemeOption, useTheme } from '../theme/ThemeProvider';
-import { AntDesign, Entypo, Feather, FontAwesome5, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { AntDesign, Entypo, Feather, FontAwesome5, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { useUserProfile } from '../socket/UseUserProfile';
 import { formatChatTime } from '../util/DateFormatter';
 import { AuthContext } from '../components/AuthProvider';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type MoreScreenProp = NativeStackNavigationProp<RootStack, "MoreScreen">;
 const options: ThemeOption[] = ["light", "dark", "system"];
@@ -43,11 +44,55 @@ export default function MoreScreen() {
   }, [navigation]);
 
   const [isModalVisible, setModalVisible] = useState(false);
+  const [isSecurityModalVisible, setSecurityModalVisible] = useState(false);
+
+  const [security, setSecurity] = useState(false);
+  const [pin, setPin] = useState(false);
+  const [face, setFace] = useState(false);
+  const [fingerprint, setFingerprint] = useState(false);
+
+  const [isloadDetails, setIsLoadDetails] = useState(true);
+
+  const loadSecurityStatus = async () => {
+    const securityAs = await AsyncStorage.getItem('security');
+    const pinAs = await AsyncStorage.getItem('pin');
+    const fingerprintAs = await AsyncStorage.getItem('fingerprint');
+
+    if (securityAs) {
+      setSecurity(securityAs === "1" ? true : false);
+    }
+    if (pinAs) {
+      setPin(pinAs === "1" ? true : false);
+    }
+    if (fingerprintAs) {
+      setFingerprint(fingerprintAs === "1" ? true : false);
+    }
+
+    setIsLoadDetails(false);
+  };
+
+  const updateAsyncStorage = async () => {
+    try {
+      await AsyncStorage.setItem('security', security ? "1" : "2");
+      // await AsyncStorage.setItem('pin', pin ? "1" : "2");
+      await AsyncStorage.setItem('face', face ? "1" : "2");
+      await AsyncStorage.setItem('fingerprint', fingerprint ? "1" : "2");
+
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    if (!isloadDetails) {
+      updateAsyncStorage();
+    }
+  }, [security, pin, fingerprint, face]);
 
   return (
-    <SafeAreaView className={`flex-1 ${isModalVisible ? `bg-black/70` : ``}`} edges={["right", "bottom", "left"]}>
+    <SafeAreaView className={`flex-1 ${isModalVisible || isSecurityModalVisible ? `bg-black/70` : ``}`} edges={["right", "bottom", "left"]}>
       <TouchableOpacity
-        className={`flex-row justify-between  px-2 py-2  ${isModalVisible ? `bg-black/20` : `bg-slate-100 border-y-2 border-gray-200`}`}
+        className={`flex-row justify-between  px-2 py-2  ${isModalVisible || isSecurityModalVisible ? `bg-black/20` : `bg-slate-100 border-y-2 border-gray-200`}`}
         onPress={() => {
           navigation.navigate("ProfileScreen");
         }}
@@ -89,7 +134,11 @@ export default function MoreScreen() {
             <MaterialIcons name="keyboard-arrow-right" size={44} color="black" />
           </View>
         </TouchableOpacity>
-        <TouchableOpacity className='flex-row justify-between ps-5 px-2 py-2'>
+        <TouchableOpacity className='flex-row justify-between ps-5 px-2 py-2'
+          onPress={() => {
+            loadSecurityStatus();
+            setSecurityModalVisible(true)
+          }}>
           <View className='items-center flex-row gap-x-4'>
             <View className='flex-row gap-4'>
               <MaterialIcons name="security" size={28} color="black" />
@@ -181,9 +230,11 @@ export default function MoreScreen() {
               >
 
                 <View className="flex-col justify-start gap-5">
-                  <Text className={`text-2xl text-center font-semibold ${applied === "dark" ? "text-gray-200" : "text-gray-800"}`}>
-                    Choose Theme
-                  </Text>
+                  <View className='flex-row justify-center items-center'>
+                    <Text className={`text-2xl text-center font-fredoka ${applied === "dark" ? "text-gray-200" : "text-gray-800"}`}>
+                      <MaterialCommunityIcons name="theme-light-dark" size={28} color="black" /> Choose Theme
+                    </Text>
+                  </View>
                   {options.map((option) => (
                     <TouchableOpacity key={option} onPress={() => setPreference(option)} className="flex-row items-center gap-x-2">
                       <View className={`w-6 h-6 rounded-full border-2 flex items-center justify-center 
@@ -213,6 +264,112 @@ export default function MoreScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      <Modal
+        animationType='fade'
+        visible={isSecurityModalVisible}
+        transparent={true}
+        onRequestClose={() => setSecurityModalVisible(false)}
+        className=''
+      >
+        <Pressable className='flex-1 items-center justify-start'
+          onPress={() => {
+            setSecurityModalVisible(false)
+          }}>
+          <Pressable className='w-full h-full'
+            onPress={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <View className='justify-end items-end p-1'>
+              <View className='bg-white dark:bg-slate-800 rounded-2xl w-full h-full p-3 '
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.70,
+                  shadowRadius: 3.84,
+                  elevation: 5,
+                }}
+              >
+
+                <View className="flex-col justify-start gap-5">
+                  <View className='flex-row justify-between mx-3 mt-2'>
+                    <Ionicons name="arrow-back-circle-outline" size={32} color={applied === "dark" ? "white" : "black"}
+                      onPress={() => {
+                        setSecurityModalVisible(false);
+                      }} />
+                    <View className='flex-row gap-x-2'>
+                      <MaterialIcons name="security" size={28} color={applied === "dark" ? "white" : "black"}/>
+                      <Text className='text-2xl font-fredoka dark:text-white'>Security</Text>
+                    </View>
+                    <Feather name="more-horizontal" size={28} color={applied === "dark" ? "white" : "black"} />
+                  </View>
+                </View>
+
+                <View className='flex-1 bg-red-100 border-t-2 mt-2'>
+                  <View className="flex-1 bg-white p-4">
+
+                    <View className="flex-row items-center justify-between border-b border-gray-200 py-3">
+                      <Text className="text-2xl font-semibold text-gray-900">Security</Text>
+                      <Switch
+                        value={security}
+                        onValueChange={setSecurity}
+                        trackColor={{ false: "#d1d5db", true: "#ff9d00" }}
+                        thumbColor={security ? "#fff" : "#f4f3f4"}
+                      />
+                    </View>
+
+                    <View className={`${security ? "opacity-100" : "opacity-50"} mt-2`}>
+                      <View className="flex-row items-center justify-between py-3">
+                        <Text className="text-xl text-gray-700">PIN Security</Text>
+                        <Switch
+                          value={pin}
+                          onValueChange={async (value) => {
+                            setPin(value);
+                            if (value) {
+                              setSecurityModalVisible(false);
+                              navigation.navigate("AuthSetUpScreen");
+                            } else {
+                              await AsyncStorage.removeItem("userPasscode");
+                              await AsyncStorage.setItem('pin', "2");
+                            }
+                          }}
+                          disabled={!security}
+                          trackColor={{ false: "#d1d5db", true: "#ff9d00" }}
+                          thumbColor={pin ? "#fff" : "#f4f3f4"}
+                        />
+                      </View>
+
+                      <View className="flex-row items-center justify-between py-3">
+                        <Text className="text-xl text-gray-700">Face Recognition</Text>
+                        <Switch
+                          value={face}
+                          onValueChange={setFace}
+                          disabled={!security}
+                          trackColor={{ false: "#d1d5db", true: "#ff9d00" }}
+                          thumbColor={face ? "#fff" : "#f4f3f4"}
+                        />
+                      </View>
+
+                      <View className="flex-row items-center justify-between py-3">
+                        <Text className="text-xl text-gray-700">Fingerprint Security</Text>
+                        <Switch
+                          value={fingerprint}
+                          onValueChange={setFingerprint}
+                          disabled={!pin}
+                          trackColor={{ false: "#d1d5db", true: "#ff9d00" }}
+                          thumbColor={fingerprint ? "#fff" : "#f4f3f4"}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
     </SafeAreaView>
   )
 }

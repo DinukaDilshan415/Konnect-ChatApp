@@ -182,7 +182,6 @@ const SignupScreen: React.FC = () => {
                 if (response.status) {
                   if (auth) {
                     await auth.signUp(String(response.userId));
-                    // navigation.replace("HomeScreen");
                   }
                 } else {
                   Toast.show({
