@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { RootStack } from '../../App'
 import { AuthContext } from '../components/AuthProvider'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 type Props = NativeStackNavigationProp<RootStack, "SplashScreen">;
 
@@ -16,15 +17,17 @@ export default function SplashScreen() {
     const opacity = useSharedValue(0);
     const auth = useContext(AuthContext);
     useEffect(() => {
-        opacity.value = withTiming(1, { duration: 2000 });
-        auth?.signUp("2");
-        // const timer = setTimeout(() => {
-        //     navigation.replace("GetStartScreen");
-        // }, 2000)
-
-        // return () => {
-        //     clearTimeout(timer);
+        // const clearAsyncStorage = async () => {
+        //     try {
+        //         await AsyncStorage.clear();
+        //         console.log('AsyncStorage successfully cleared!');
+        //     } catch (e) {
+        //         console.error('Failed to clear AsyncStorage:', e);
+        //     }
         // };
+        // clearAsyncStorage();
+        opacity.value = withTiming(1, { duration: 2000 });
+        // auth?.signUp("2");
     }, [navigation, opacity]);
 
     const animatedStyle = useAnimatedStyle(() => {

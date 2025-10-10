@@ -18,6 +18,8 @@ import NewContactScreen from "./src/screens/NewContactScreen";
 import { useContext } from "react";
 import { AuthContext, AuthProvider } from "./src/components/AuthProvider";
 import { WebSocketProvider } from "./src/socket/WebSocketProvider";
+import AuthScreen from "./src/screens/AuthScreen";
+import AuthSetUpScreen from "./src/screens/AuthSetUpScreen";
 
 export type RootStack = {
   SplashScreen: undefined;
@@ -32,6 +34,8 @@ export type RootStack = {
   NewChatScreen: undefined;
   NewContactScreen: undefined;
   MoreScreen: undefined;
+  AuthScreen: undefined;
+  AuthSetUpScreen: undefined;
   SingleChatScreen: {
     chatId: number;
     friendName: string;
@@ -93,7 +97,17 @@ function MainApp() {
                       headerShown: false
                     }} />
                 </Stack.Group>
+              ) : auth?.isPin ? (
+
+                <Stack.Screen
+                  name="AuthScreen"
+                  component={AuthScreen}
+                  options={{
+                    headerShown: false
+                  }} />
+
               ) : (
+
                 <Stack.Group>
                   <Stack.Screen
                     name="HomeScreen"
@@ -122,6 +136,14 @@ function MainApp() {
                   <Stack.Screen
                     name="NewContactScreen"
                     component={NewContactScreen}
+                  />
+
+                  <Stack.Screen
+                    name="AuthSetUpScreen"
+                    component={AuthSetUpScreen}
+                    options={{
+                      headerShown: false
+                    }}
                   />
                 </Stack.Group>
               )}

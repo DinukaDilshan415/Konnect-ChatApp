@@ -61,7 +61,7 @@ export default function ProfileScreen() {
     });
     if (!result.canceled) {
       setImage(result.assets[0].uri);
-      await uploadProfileImage(String(auth ? auth.userId : 0), result.assets[0].uri);
+      const data = await uploadProfileImage(String(auth ? auth.userId : 0), result.assets[0].uri);
     }
   };
 

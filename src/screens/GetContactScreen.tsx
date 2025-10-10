@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Image, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native'
+import React, { useContext, useState } from 'react'
+import { Image, Modal, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import CircleShape from '../components/CircleShape'
@@ -12,12 +12,22 @@ import { useNavigation } from '@react-navigation/native'
 import { useUserRegistration } from '../components/UserContext'
 import { ALERT_TYPE, Toast } from 'react-native-alert-notification'
 import { validateCountryCode, validatePhoneNo } from '../util/Validation'
+import { checkUserAccount } from '../service/UserService'
+import { AuthContext } from '../components/AuthProvider'
+
+interface ConfirmModalProps {
+    isVisible: boolean;
+    message: string;
+    userId: string;
+    onConfirm: (userId: string) => Promise<void>;
+    onCancel: () => void;
+}
 
 type SignUpProps = NativeStackNavigationProp<RootStack, "SignUpScreen">
 
 export default function GetContactScreen() {
     const navigation = useNavigation<SignUpProps>();
-
+    const auth = useContext(AuthContext);
     const [countryCode, setCountryCode] = useState<CountryCode>("LK");
     const [country, setCountry] = useState<Country | null>(null);
     const [show, setShow] = useState<boolean>(false);
@@ -33,6 +43,48 @@ export default function GetContactScreen() {
             : require("../../assets/K-black.png");
 
     const { userData, setUserData } = useUserRegistration();
+
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [signInUserId, setSignInUserId] = useState("");
+
+    const ConfirmModal = ({ isVisible, message, userId, onConfirm, onCancel }: ConfirmModalProps) => {
+        return (
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={isVisible}
+                onRequestClose={onCancel}
+            >
+                <View className="flex-1 justify-center items-center bg-black/70">
+                    <View className="bg-white dark:bg-zinc-600 rounded-xl p-6 w-4/5 max-w-sm shadow-lg">
+                        <Text className="text-zinc-700 dark:text-white text-lg font-semibold text-center mb-6">
+                            {message}
+                        </Text>
+                        <View className="flex-row justify-between">
+                            <Pressable
+                                onPress={onCancel}
+                                className="bg-gray-500 px-4 py-2 rounded-lg w-5/12 items-center active:bg-gray-600"
+                            >
+                                <Text className="text-white font-medium text-lg">Cancel</Text>
+                            </Pressable>
+                            <Pressable
+                                onPress={() => onConfirm(userId)}
+                                className="bg-green-600 px-4 py-2 rounded-lg w-5/12 items-center active:bg-green-800"
+                            >
+                                <Text className="text-white font-medium text-lg">Continue</Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+        );
+    };
+
+    const handleAuth = async (userId: string) => {
+        if (auth) {
+            await auth.signUp(String(userId));
+        }
+    };
 
     return (
         <SafeAreaView className='flex-1 items-center justify-center bg-white dark:bg-slate-700 p-4'>
@@ -87,14 +139,14 @@ export default function GetContactScreen() {
                         value={phoneNo}
                         onChangeText={(text) => {
                             setPhoneNo(text);
-                            text.length <= 0 ? setShowBtn(false) : setShowBtn(true) 
+                            text.length <= 0 ? setShowBtn(false) : setShowBtn(true)
                         }}
                     />
                 </View>
             </View>
             <View className='w-full px-2 mt-5 absolute bottom-9'>
                 <Pressable className={`h-14 justify-center items-center rounded-full ${showBtn ? "bg-amber-500" : "bg-gray-300 dark:bg-slate-600/80"}`}
-                    onPress={() => {
+                    onPress={async () => {
                         const validCountryCode = validateCountryCode(callingCode);
                         const validPhoneNo = validatePhoneNo(phoneNo);
 
@@ -118,12 +170,26 @@ export default function GetContactScreen() {
                                     : callingCode,
                                 contactNo: phoneNo,
                             }));
-                            navigation.navigate("SignUpScreen");
+                            const data = await checkUserAccount(country ? `+${country.callingCode}` : callingCode, phoneNo);
+                            if (data.status) {
+                                setSignInUserId(data.userId);
+                                setShowConfirm(true);
+                            } else {
+                                navigation.navigate("SignUpScreen");
+                            }
+
                         }
                     }}>
                     <Text className='text-white font-bold text-xl'>Continue</Text>
                 </Pressable>
             </View>
+            <ConfirmModal
+                isVisible={showConfirm}
+                message="This Contact Number Already Exists ! Do you want to Continue with this Number ?"
+                userId={signInUserId}
+                onConfirm={handleAuth}
+                onCancel={() => setShowConfirm(false)}
+            />
         </SafeAreaView>
     )
 }
