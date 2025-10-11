@@ -15,16 +15,13 @@ export function useUserProfile() {
             const response: WSResponse = JSON.parse(event.data);
             if (response.type === "user_profile") {
                 setUserProfile(response.payload);
+                console.log(response.payload);
             }
         };
-
         socket.addEventListener("message", onMessage);
-
         return () => {
             socket.removeEventListener("message", onMessage);
         };
-
     }, [socket]);
-
     return { userProfile: userProfile, setUserProfile: setUserProfile };
 }

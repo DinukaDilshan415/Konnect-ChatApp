@@ -4,8 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function GroupScreen() {
   return (
-    <SafeAreaView>
-        <Text className='text-lg bg-blue-600'>dsdds dsfS f sd</Text>
+    <SafeAreaView className='flex-1 justify-center items-center'>
+        <Text className='text-2xl font-quicksand'>This Feature Coming Soon...</Text>
     </SafeAreaView>
   )
 }

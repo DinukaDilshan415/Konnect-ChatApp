@@ -18,14 +18,10 @@ export function useUserList() {
                 setUsers(response.payload);
             }
         };
-
         socket.addEventListener("message", onMessage);
-
         return () => {
             socket.removeEventListener("message", onMessage);
         };
-
     }, [socket]);
-
     return users;
 }

@@ -13,12 +13,10 @@ export function useSendNewContact() {
             user
         });
     }
-
     useEffect(() => {
         if (!socket) {
             return;
         }
-
         const onMessage = (event: MessageEvent) => {
             const response: WSResponse = JSON.parse(event.data);
             if (response.type === "new_contact_response_text") {
@@ -39,14 +37,10 @@ export function useSendNewContact() {
                 }
             }
         };
-
         socket.addEventListener("message", onMessage);
-
         return () => {
             socket.removeEventListener("message", onMessage);
         };
-
     }, [socket]);
-
     return { sendNewContact: sendNewContact, responseText: responseText };
 }
