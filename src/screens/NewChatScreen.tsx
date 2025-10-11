@@ -106,7 +106,7 @@ export default function NewChatScreen() {
     const filterdUsers = [...users]
         .filter((user) => {
             return (
-                user.displayName.toLowerCase().includes(search.toLowerCase()) ||
+                user.first_name.toLowerCase().includes(search.toLowerCase()) ||
                 user.contact_no.includes(search)
             );
         })

@@ -123,7 +123,7 @@ const SignupScreen: React.FC = () => {
               label={"Enter Your First Name"}
               maxLength={200}
               animationDuration={50}
-              inputStyles={{ color: applied === "dark" ? "white" : "black" }}
+              inputStyles={{ color: applied === "dark" ? "white" : "black", fontSize:16 }}
               value={userData.firstName}
               onChangeText={(text) => {
                 setUserData((previous) => ({
@@ -136,7 +136,7 @@ const SignupScreen: React.FC = () => {
               label={"Enter Your Last Name"}
               maxLength={200}
               animationDuration={50}
-              inputStyles={{ color: applied === "dark" ? "white" : "black" }}
+              inputStyles={{ color: applied === "dark" ? "white" : "black", fontSize:16 }}
               value={userData.lastName}
               onChangeText={(text) => {
                 setUserData((previous) => ({
@@ -147,7 +147,7 @@ const SignupScreen: React.FC = () => {
           </View>
         </ScrollView>
       </SafeAreaView>
-      <View className='w-full px-5 mt-5 absolute bottom-1'>
+      <View className='w-full px-5 mt-5 absolute bottom-6'>
         <Pressable className={`h-14 justify-center items-center flex-row gap-2 rounded-full bg-amber-500 text-white`}
           onPress={async () => {
             let validFirstName = validateFirstName(userData.firstName);
